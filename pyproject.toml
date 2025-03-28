@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sequence_layers"
+version = "0.1"
+authors = [
+    { name="Google, LLC" }
+]
+description = "Sequence Layers: A library for sequence modeling in TensorFlow 2"
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.9"
+dependencies = [
+    "absl-py",
+    "attrs",
+    "numpy",
+    "scipy",
+    "tensorflow<2.12.0",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest",
+]

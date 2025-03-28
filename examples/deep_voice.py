@@ -21,7 +21,7 @@ https://arxiv.org/abs/1710.07654
 
 import math
 
-from sequence_layers import tensorflow as sl
+import sequence_layers as sl
 import tensorflow.compat.v2 as tf
 
 

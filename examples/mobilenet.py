@@ -20,7 +20,7 @@ Applications
 https://arxiv.org/abs/1704.04861
 """
 
-from sequence_layers import tensorflow as sl
+import sequence_layers as sl
 
 
 def MobileNet2D(num_classes: int = 1000) -> sl.SequenceLayer:

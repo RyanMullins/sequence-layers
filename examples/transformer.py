@@ -20,7 +20,7 @@ https://arxiv.org/abs/1706.03762
 """
 
 from typing import Optional
-from sequence_layers import tensorflow as sl
+import sequence_layers as sl
 import tensorflow.compat.v2 as tf
 
 

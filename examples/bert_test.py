@@ -14,11 +14,12 @@
 
 from absl.testing import parameterized
 import numpy as np
-from sequence_layers import tensorflow as sl
-from sequence_layers.examples import bert
-from sequence_layers.tensorflow import test_util
+import sequence_layers as sl
+from sequence_layers import test_util
 import tensorflow.compat.v1 as tf1
 import tensorflow.compat.v2 as tf
+
+from . import bert
 
 
 class BERTEncoderTest(test_util.SequenceLayerTest, parameterized.TestCase):

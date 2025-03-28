@@ -32,9 +32,9 @@ import functools
 import math
 
 import numpy as np
-from sequence_layers import tensorflow as sl
-from sequence_layers.examples import t5
-from sequence_layers.tensorflow import utils
+import sequence_layers as sl
+from . import t5
+from sequence_layers import utils
 import tensorflow.compat.v2 as tf
 
 

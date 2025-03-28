@@ -33,7 +33,7 @@ Based on:
 
 from typing import Optional
 
-from sequence_layers import tensorflow as sl
+import sequence_layers as sl
 import tensorflow.compat.v2 as tf
 import tensorflow_probability as tfp
 

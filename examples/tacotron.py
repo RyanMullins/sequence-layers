@@ -20,7 +20,7 @@ https://arxiv.org/abs/1703.10135
 """
 
 from sequence_layers import proto as slp
-from sequence_layers import tensorflow as sl
+import sequence_layers as sl
 import tensorflow.compat.v2 as tf
 
 

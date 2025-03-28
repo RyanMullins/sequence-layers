@@ -20,8 +20,8 @@ https://arxiv.org/abs/1810.04805
 """
 
 from typing import Optional, Tuple
-from sequence_layers import tensorflow as sl
-from sequence_layers.examples import transformer
+import sequence_layers as sl
+from . import transformer
 import tensorflow.compat.v2 as tf
 
 

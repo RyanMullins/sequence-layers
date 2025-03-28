@@ -26,7 +26,7 @@ ICASSP, 2017.
 https://arxiv.org/abs/1610.03022
 """
 
-from sequence_layers import tensorflow as sl
+import sequence_layers as sl
 import tensorflow.compat.v1 as tf
 
 

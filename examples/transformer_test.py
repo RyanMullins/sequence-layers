@@ -13,9 +13,10 @@
 # limitations under the License.
 
 from absl.testing import parameterized
-from sequence_layers.examples import transformer
-from sequence_layers.tensorflow import test_util
+from sequence_layers import test_util
 import tensorflow.compat.v2 as tf
+
+from . import transformer
 
 
 class TransformerTest(test_util.SequenceLayerTest, parameterized.TestCase):
