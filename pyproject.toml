@@ -11,16 +11,17 @@ authors = [
 description = "Sequence Layers: A library for sequence modeling in TensorFlow 2"
 readme = "README.md"
 license = { file = "LICENSE" }
-requires-python = ">=3.9"
+requires-python = ">=3.9, <3.11"
 dependencies = [
     "absl-py",
     "attrs",
     "numpy<2.0.0",
     "scipy",
-    "tensorflow<2.16.0",
+    "tensorflow<2.11.0",
 ]
 
 [project.optional-dependencies]
 test = [
     "pytest",
+    "tensorflow_probability<0.19.0",
 ]
