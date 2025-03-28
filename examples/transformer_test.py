@@ -16,7 +16,7 @@ from absl.testing import parameterized
 from sequence_layers import test_util
 import tensorflow.compat.v2 as tf
 
-from . import transformer
+import transformer
 
 
 class TransformerTest(test_util.SequenceLayerTest, parameterized.TestCase):

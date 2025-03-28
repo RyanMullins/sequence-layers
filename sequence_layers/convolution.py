@@ -16,11 +16,14 @@
 import fractions
 from typing import List, Optional, Tuple, Union
 
+from keras.utils import conv_utils
+from keras.utils import tf_utils
 import numpy as np
-from . import types
-from . import utils
 import tensorflow as tf
 import tensorflow.compat.v2 as tf
+
+from . import types
+from . import utils
 
 
 def compute_conv_mask(
@@ -804,7 +807,7 @@ class _NormalizedDepthwiseConv1D(tf.keras.layers.Conv2D):
 
     return outputs
 
-  @tf.keras.utils.tf_utils.shape_type_conversion
+  @tf_utils.shape_type_conversion
   def compute_output_shape(self, input_shape):
     if self.data_format == 'channels_first':
       rows = input_shape[2]
@@ -815,14 +818,14 @@ class _NormalizedDepthwiseConv1D(tf.keras.layers.Conv2D):
       cols = input_shape[2]
       out_filters = input_shape[3] * self.depth_multiplier
 
-    rows = tf.keras.utils.conv_utils.conv_output_length(
+    rows = conv_utils.conv_output_length(
         rows,
         self.kernel_size[0],
         self.padding,
         self.strides[0],
         self.dilation_rate[0],
     )
-    cols = tf.keras.utils.conv_utils.conv_output_length(
+    cols = conv_utils.conv_output_length(
         cols,
         self.kernel_size[1],
         self.padding,

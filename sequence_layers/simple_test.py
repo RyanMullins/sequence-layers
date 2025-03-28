@@ -18,9 +18,10 @@ import itertools
 from absl.testing import parameterized
 import numpy as np
 import sequence_layers as sl
+import tensorflow.compat.v2 as tf
+
 from . import test_util
 from . import utils
-import tensorflow.compat.v2 as tf
 
 
 class ScaleTest(test_util.SequenceLayerTest, parameterized.TestCase):

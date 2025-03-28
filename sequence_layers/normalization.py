@@ -15,9 +15,10 @@
 
 from typing import List, Optional, Sequence, Tuple, Union
 
-from . import types
 import tensorflow.compat.v1 as tf1
 import tensorflow.compat.v2 as tf
+
+from . import types
 
 # TODO(dthkao): Since this is only needed for tf1 tpu context checking,
 # consider removing TF1 support?

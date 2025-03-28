@@ -33,18 +33,18 @@ from . import types
 
 # pylint: disable=wildcard-import
 # TODO(rryan): Don't wildcard import, or define __all__ explicitly.
-from ..attention import *
-from ..combinators import *
-from ..conditioning import *
-from ..convolution import *
-from ..dense import *
-from ..dsp import *
-from ..normalization import *
-from ..pooling import *
-from ..position import *
-from ..recurrent import *
-from ..simple import *
-from ..squeeze import *
-from ..time_varying import *
-from ..types import *
+from .attention import *
+from .combinators import *
+from .conditioning import *
+from .convolution import *
+from .dense import *
+from .dsp import *
+from .normalization import *
+from .pooling import *
+from .position import *
+from .recurrent import *
+from .simple import *
+from .squeeze import *
+from .time_varying import *
+from .types import *
 # pylint: enable=wildcard-import

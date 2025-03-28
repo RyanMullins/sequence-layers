@@ -16,11 +16,12 @@
 import enum
 from typing import Optional, Tuple, Union
 
+import tensorflow.compat.v2 as tf
+
 from . import dense
 from . import simple
 from . import types
 from . import utils
-import tensorflow.compat.v2 as tf
 
 
 def _get_conditioning(
@@ -133,7 +134,7 @@ class BaseConditioning(types.SequenceLayer):
 
   def __init__(
       self,
-      conditioning_name: str | None,
+      conditioning_name: Optional[str],
       projection: Projection,
       combination: Combination,
       name: Optional[str] = None,
@@ -586,11 +587,11 @@ class NoiseConditioning(BaseConditioning):
 
   def __init__(
       self,
-      noise_channel_shape: tf.TensorShape | list[int] | tuple[int],
+      noise_channel_shape: Union[tf.TensorShape, list[int], tuple[int]],
       noise_sampler: simple.NoiseSampler,
       projection: BaseConditioning.Projection,
       combination: BaseConditioning.Combination,
-      name: str | None = None,
+      name: Optional[str] = None,
   ):
     super().__init__(None, projection, combination, name=name)
     self._noise_channel_shape = tf.TensorShape(noise_channel_shape)
@@ -610,7 +611,7 @@ class NoiseConditioning(BaseConditioning):
     return types.Sequence(samples, x.mask).mask_invalid()
 
   def get_initial_state(
-      self, x: types.Sequence, constants: types.Constants | None = None
+      self, x: types.Sequence, constants: Optional[types.Constants] = None
   ) -> types.State:
     return ()
 

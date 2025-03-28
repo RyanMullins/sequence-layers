@@ -15,7 +15,7 @@
 from sequence_layers import test_util
 import tensorflow.compat.v2 as tf
 
-from . import conformer
+import conformer
 
 
 class ConformerTest(test_util.SequenceLayerTest):

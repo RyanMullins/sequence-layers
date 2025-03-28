@@ -15,9 +15,10 @@
 
 from typing import List, Optional, Tuple, Union
 
+import tensorflow.compat.v2 as tf
+
 from . import types
 from . import utils
-import tensorflow.compat.v2 as tf
 
 
 class Dense(types.Stateless):

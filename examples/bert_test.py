@@ -19,7 +19,7 @@ from sequence_layers import test_util
 import tensorflow.compat.v1 as tf1
 import tensorflow.compat.v2 as tf
 
-from . import bert
+import bert
 
 
 class BERTEncoderTest(test_util.SequenceLayerTest, parameterized.TestCase):

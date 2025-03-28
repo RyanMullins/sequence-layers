@@ -14,12 +14,14 @@
 """Tests for ..attention."""
 
 import itertools
+from typing import Optional
 
 from absl.testing import parameterized
 import sequence_layers as sl
+import tensorflow.compat.v2 as tf
+
 from . import test_util
 from . import utils
-import tensorflow.compat.v2 as tf
 
 
 class AdditiveAttentionTest(
@@ -431,7 +433,7 @@ class DotProductAttentionTest(
   def test_dot_product_attention_chunked(
       self,
       policy: str,
-      key_chunk_size: int | None,
+      key_chunk_size: Optional[int],
   ):
     x = None
     constants = {}
@@ -853,7 +855,7 @@ class DotProductSelfAttentionTest(
       past_horizon: int,
       future_horizon: int,
       policy: str,
-      key_chunk_size: int | None,
+      key_chunk_size: Optional[int],
   ):
     x = None
     if not tf.executing_eagerly():

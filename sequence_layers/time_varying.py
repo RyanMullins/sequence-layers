@@ -13,9 +13,12 @@
 # limitations under the License.
 """Time-varying layers."""
 
+from typing import Optional, Union
+
+import tensorflow.compat.v2 as tf
+
 from . import types
 from . import utils
-import tensorflow.compat.v2 as tf
 
 
 class SequenceEmbedding(types.SequenceLayer):
@@ -37,7 +40,7 @@ class SequenceEmbedding(types.SequenceLayer):
       activity_regularizer=None,
       embeddings_constraint=None,
       trainable: bool = True,
-      name: str | None = None,
+      name: Optional[str] = None,
   ):
     super().__init__(name)
     self._num_groups = num_groups
@@ -59,7 +62,7 @@ class SequenceEmbedding(types.SequenceLayer):
   def get_output_shape(
       self,
       input_shape: tf.TensorShape,
-      constants: types.Constants | None = None,
+      constants: Optional[types.Constants] = None,
   ) -> tf.TensorShape:
     return input_shape.concatenate(self._embedding.output_dim)
 
@@ -68,12 +71,12 @@ class SequenceEmbedding(types.SequenceLayer):
     return utils.compute_dtype()
 
   def get_initial_state(
-      self, x: types.Sequence, constants: types.Constants | None = None
+      self, x: types.Sequence, constants: Optional[types.Constants] = None
   ) -> types.State:
     return tf.zeros(shape=(), dtype=tf.int32)
 
   def _time_wise_embed(
-      self, values: tf.Tensor, start_time: tf.Tensor | int, training: bool
+      self, values: tf.Tensor, start_time: Union[tf.Tensor, int], training: bool
   ) -> tf.Tensor:
     tf.debugging.assert_greater_equal(
         values, 0, message='Out of range lookup index (< 0).'
@@ -108,7 +111,7 @@ class SequenceEmbedding(types.SequenceLayer):
       x: types.Sequence,
       state: types.State,
       training: bool,
-      constants: types.Constants | None = None,
+      constants: Optional[types.Constants] = None,
   ) -> tuple[types.Sequence, types.State]:
     """Steps forward, input shape: [..., block_size, num_groups]."""
     x = x.apply_values(
@@ -122,8 +125,8 @@ class SequenceEmbedding(types.SequenceLayer):
       self,
       x: types.Sequence,
       training: bool,
-      initial_state: types.State | None = None,
-      constants: types.Constants | None = None,
+      initial_state: Optional[types.State] = None,
+      constants: Optional[types.Constants] = None,
   ) -> types.Sequence:
     del initial_state
     del constants
@@ -153,7 +156,7 @@ class SequenceDense(types.SequenceLayer):
       use_bias: bool = True,
       kernel_initializer='glorot_uniform',
       bias_initializer='zeros',
-      name: str | None = None,
+      name: Optional[str] = None,
   ):
     super().__init__(name=name)
     self._units = units
@@ -191,14 +194,14 @@ class SequenceDense(types.SequenceLayer):
   def get_output_shape(
       self,
       input_shape: tf.TensorShape,
-      constants: types.Constants | None = None,
+      constants: Optional[types.Constants] = None,
   ) -> tf.TensorShape:
     del constants
     input_shape.with_rank_at_least(1)
     return input_shape[:-1].concatenate(self._units)
 
   def get_initial_state(
-      self, x: types.Sequence, constants: types.Constants | None = None
+      self, x: types.Sequence, constants: Optional[types.Constants] = None
   ) -> types.State:
     del x, constants
     return tf.zeros(shape=(), dtype=tf.int32)
@@ -209,7 +212,7 @@ class SequenceDense(types.SequenceLayer):
       x: types.Sequence,
       state: types.State,
       training: bool,
-      constants: types.Constants | None = None,
+      constants: Optional[types.Constants] = None,
   ) -> tuple[types.Sequence, types.State]:
     """Steps forward, input shape: [..., block_size, num_groups]."""
     del training, constants
@@ -241,8 +244,8 @@ class SequenceDense(types.SequenceLayer):
       self,
       x: types.Sequence,
       training: bool,
-      initial_state: types.State | None = None,
-      constants: types.Constants | None = None,
+      initial_state: Optional[types.State] = None,
+      constants: Optional[types.Constants] = None,
   ) -> types.Sequence:
     if initial_state is None:
       initial_state = self.get_initial_state(x, constants)
@@ -278,7 +281,7 @@ class MaskedDense(types.SequenceLayer):
       use_bias: bool = True,
       kernel_initializer='glorot_uniform',
       bias_initializer='zeros',
-      name: str | None = None,
+      name: Optional[str] = None,
   ):
     super().__init__(name=name)
     self._units = units
@@ -337,14 +340,14 @@ class MaskedDense(types.SequenceLayer):
   def get_output_shape(
       self,
       input_shape: tf.TensorShape,
-      constants: types.Constants | None = None,
+      constants: Optional[types.Constants] = None,
   ) -> tf.TensorShape:
     del constants
     input_shape.with_rank_at_least(1)
     return input_shape[:-1].concatenate(self._units)
 
   def get_initial_state(
-      self, x: types.Sequence, constants: types.Constants | None = None
+      self, x: types.Sequence, constants: Optional[types.Constants] = None
   ) -> types.State:
     del constants
     self._build(x)
@@ -367,7 +370,7 @@ class MaskedDense(types.SequenceLayer):
       x: types.Sequence,
       state: types.State,
       training: bool,
-      constants: types.Constants | None = None,
+      constants: Optional[types.Constants] = None,
   ) -> tuple[types.Sequence, types.State]:
     """Steps forward, input shape: [..., block_size, num_groups]."""
     del training, constants
@@ -422,8 +425,8 @@ class MaskedDense(types.SequenceLayer):
       self,
       x: types.Sequence,
       training: bool,
-      initial_state: types.State | None = None,
-      constants: types.Constants | None = None,
+      initial_state: Optional[types.State] = None,
+      constants: Optional[types.Constants] = None,
   ) -> types.Sequence:
     if initial_state is None:
       initial_state = self.get_initial_state(x, constants)

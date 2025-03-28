@@ -16,7 +16,7 @@ from absl.testing import parameterized
 from sequence_layers import test_util
 import tensorflow.compat.v2 as tf
 
-from . import deep_voice
+import deep_voice
 
 
 class DeepVoice3Test(test_util.SequenceLayerTest, parameterized.TestCase):

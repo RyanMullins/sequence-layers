@@ -15,9 +15,10 @@
 
 from absl.testing import parameterized
 import sequence_layers as sl
-from . import test_util
 import tensorflow.compat.v1 as tf1
 import tensorflow.compat.v2 as tf
+
+from . import test_util
 
 
 class RecurrentTest(test_util.SequenceLayerTest, parameterized.TestCase):

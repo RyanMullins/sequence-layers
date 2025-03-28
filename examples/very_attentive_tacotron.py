@@ -30,10 +30,11 @@ import abc
 import dataclasses
 import functools
 import math
+from typing import Optional, Union
 
 import numpy as np
 import sequence_layers as sl
-from . import t5
+import t5
 from sequence_layers import utils
 import tensorflow.compat.v2 as tf
 
@@ -328,7 +329,7 @@ class InterpolatedRelativePositionBiases(sl.RelativePositionEmbedding):
       max_distance_penalty: float,
       bidirectional: bool,
       initializer: str,
-      name: str | None = None,
+      name: Optional[str] = None,
   ):
     """Construct InterpolatedRelativePositionBiases.
 
@@ -509,9 +510,9 @@ class InterpolatedRelativePositionBiases(sl.RelativePositionEmbedding):
   def get_position_bias_raw(
       self,
       queries_position: tf.Tensor,
-      queries_length: tf.Tensor | int,
+      queries_length: Union[tf.Tensor, int],
       keys_position: tf.Tensor,
-      keys_length: tf.Tensor | int,
+      keys_length: Union[tf.Tensor, int],
   ) -> tf.Tensor:
     """Computes relative self-attention position biases for absolute positions.
 
@@ -661,9 +662,10 @@ def SelfAttentionBlock(
     units_per_head: int,
     max_horizon: int,
     max_future_horizon: int,
-    relative_position_embedding: (
-        InterpolatedRelativePositionBiases | sl.T5RelativePositionEmbedding
-    ),
+    relative_position_embedding: Union[
+        InterpolatedRelativePositionBiases,
+        sl.T5RelativePositionEmbedding,
+    ],
     dropout_rate: float,
 ) -> sl.SequenceLayer:
   """Self-attention with relative position biases (interpolated or not)."""
@@ -691,10 +693,10 @@ def TransformerEncoderBlock(
     dimension: int,
     num_heads: int,
     units_per_head: int,
-    position_embeddings_config: (
-        InterpolatedRelativePositionBiasesConfig
-        | T5RelativePositionEmbeddingConfig
-    ),
+    position_embeddings_config: Union[
+        InterpolatedRelativePositionBiasesConfig,
+        T5RelativePositionEmbeddingConfig,
+    ],
     ffn_activation: ... = tf.nn.gelu,
     dropout_rate: float = 0.1,
 ) -> sl.SequenceLayer:
@@ -746,7 +748,7 @@ def TextEncoder(
     num_buckets: int = 32,
     ffn_activation: ... = tf.nn.gelu,
     dropout_rate: float = 0.1,
-    name: str | None = None,
+    name: Optional[str] = None,
 ) -> sl.SequenceLayer:
   """Builds a hybrid text encoder, with or without relative position biases."""
   assert dimension % num_heads == 0
@@ -855,7 +857,7 @@ class AlignmentLayer(sl.Emitting, PreprocessConstants):
       source_name: str,
       config: AlignmentLayerConfig,
       dropout_rate: float,
-      name: str | None = None,
+      name: Optional[str] = None,
   ):
 
     super().__init__(name=name)
@@ -1139,7 +1141,7 @@ class RelativeCrossAttention(sl.DotProductAttention):
       use_bias: bool = False,
       kernel_initializer='glorot_uniform',
       bias_initializer='zeros',
-      name: str | None = None,
+      name: Optional[str] = None,
   ):
     """Construct RelativeCrossAttention."""
     super().__init__(
@@ -1174,7 +1176,7 @@ class RelativeCrossAttention(sl.DotProductAttention):
       x: sl.Sequence,
       state: sl.State,
       training: bool,
-      constants: sl.Constants | None = None,
+      constants: Optional[sl.Constants] = None,
   ) -> tuple[sl.Sequence, sl.State, sl.Emits]:
     source, alignment_position = self._get_constants(constants)
 
@@ -1272,9 +1274,9 @@ class RelativeCrossAttention(sl.DotProductAttention):
   def _logit_bias_fn(
       self,
       query_time: tf.Tensor,
-      query_length: tf.Tensor | int,
+      query_length: Union[tf.Tensor, int],
       key_time: tf.Tensor,
-      key_length: tf.Tensor | int,
+      key_length: Union[tf.Tensor, int],
       alignment_position: tf.Tensor,
   ) -> tf.Tensor:
     """Returns logit biases [b, q, h, k] for the provided positions."""
@@ -1302,7 +1304,7 @@ class AlignmentBlock(sl.Residual, PreprocessConstants):
       config: AlignmentLayerConfig,
       output_dim: int,
       dropout_rate: float,
-      name: str | None = None,
+      name: Optional[str] = None,
   ):
     self.alignment_layer = AlignmentLayer(
         source_name, config, dropout_rate, name='alignment_layer'
@@ -1466,7 +1468,7 @@ def VATDecoderBlockStack(
 class VATDecoderConfig:
   """Configuration for VATDecoder."""
 
-  name: str | None
+  name: Optional[str]
   # The name of the source sequence to use for cross-attention, e.g.
   # 'text_encoder_top'.
   source_name: str
@@ -1697,7 +1699,7 @@ class VATDecoder(sl.Emitting, PreprocessConstants):
 class T5BaselineDecoderConfig:
   """Configuration for T5BaselineDecoder."""
 
-  name: str | None
+  name: Optional[str]
   # The name of the source sequence to use for cross-attention, e.g.
   # 'text_encoder_top'.
   source_name: str

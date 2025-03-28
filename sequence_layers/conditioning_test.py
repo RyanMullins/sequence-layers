@@ -16,16 +16,16 @@
 from absl.testing import parameterized
 import numpy as np
 import sequence_layers as sl
-from . import conditioning
-from . import test_util
 import tensorflow.compat.v2 as tf
 
-IDENTITY = conditioning.Conditioning.Projection.IDENTITY
-LINEAR = conditioning.Conditioning.Projection.LINEAR
-LINEAR_AFFINE = conditioning.Conditioning.Projection.LINEAR_AFFINE
-ADD = conditioning.Conditioning.Combination.ADD
-CONCAT = conditioning.Conditioning.Combination.CONCAT
-AFFINE = conditioning.Conditioning.Combination.AFFINE
+from . import test_util
+
+IDENTITY = sl.Conditioning.Projection.IDENTITY
+LINEAR = sl.Conditioning.Projection.LINEAR
+LINEAR_AFFINE = sl.Conditioning.Projection.LINEAR_AFFINE
+ADD = sl.Conditioning.Combination.ADD
+CONCAT = sl.Conditioning.Combination.CONCAT
+AFFINE = sl.Conditioning.Combination.AFFINE
 
 
 def _float_tensor(values):

@@ -16,10 +16,11 @@
 import fractions
 from typing import List, Optional, Tuple, Union
 
+import tensorflow.compat.v2 as tf
+
 from . import convolution
 from . import types
 from . import utils
-import tensorflow.compat.v2 as tf
 
 
 class BasePooling1D(types.SequenceLayer):

@@ -21,11 +21,12 @@ from absl import flags
 from absl.testing import parameterized
 import numpy as np
 import sequence_layers as sl
+import tensorflow.compat.v1 as tf1
+import tensorflow.compat.v2 as tf
+
 from . import normalization
 from . import test_util
 from . import utils
-import tensorflow.compat.v1 as tf1
-import tensorflow.compat.v2 as tf
 
 _TEST_ON_TPU = flags.DEFINE_boolean(
     'test_on_tpu', False, 'Whether to run on a TPU.'

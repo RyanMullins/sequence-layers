@@ -18,8 +18,9 @@ import functools
 from typing import Any, Callable, Iterable, List, Optional, Tuple, Union
 
 import numpy as np
-from . import types
 import tensorflow.compat.v2 as tf
+
+from . import types
 
 
 def squeeze_mask(mask: tf.Tensor, factor: int) -> tf.Tensor:
@@ -635,7 +636,7 @@ def dynamic_filter_conv1d(inputs, filters, stride=1, padding='SAME'):
 
 
 def log_without_underflow(
-    inputs: tf.Tensor, min_output: float, min_input: float | None = None
+    inputs: tf.Tensor, min_output: float, min_input: Optional[float] = None
 ) -> tf.Tensor:
   """Natural logarithm preventing underflow.
 
@@ -796,7 +797,7 @@ def variable_dtype() -> tf.DType:
 
 def slice_and_pad_tensor(
     tensor: tf.Tensor,
-    slices: list[tuple[int, tf.Tensor | int, int]],
+    slices: list[tuple[int, tf.Tensor, int, int]],
     pad_value: float,
     tensor_is_pre_padded: bool,
     name: str,

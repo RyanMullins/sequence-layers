@@ -17,15 +17,16 @@ import abc
 import fractions
 import functools
 import math
-from typing import Callable, NamedTuple, Optional, Tuple
+from typing import Callable, NamedTuple, Optional, Tuple, Union
 
 import numpy as np
 import scipy
+import tensorflow.compat.v1 as tf1
+import tensorflow.compat.v2 as tf
+
 from . import dense
 from . import types
 from . import utils
-import tensorflow.compat.v1 as tf1
-import tensorflow.compat.v2 as tf
 
 
 # A negative enough value such that it underflows to a hard zero in softmax.
@@ -666,9 +667,9 @@ class RelativePositionEmbedding(tf.Module, metaclass=abc.ABCMeta):
   def get_position_bias_raw(
       self,
       queries_position: tf.Tensor,
-      queries_length: tf.Tensor | int,
+      queries_length: Union[tf.Tensor, int],
       keys_position: tf.Tensor,
-      keys_length: tf.Tensor | int,
+      keys_length: Union[tf.Tensor, int],
   ) -> tf.Tensor:
     """Computes relative self-attention position biases for absolute positions.
 
@@ -853,9 +854,9 @@ class ShawRelativePositionEmbedding(RelativePositionEmbedding):
   def get_position_bias_raw(
       self,
       queries_position: tf.Tensor,
-      queries_length: tf.Tensor | int,
+      queries_length: Union[tf.Tensor, int],
       keys_position: tf.Tensor,
-      keys_length: tf.Tensor | int,
+      keys_length: Union[tf.Tensor, int],
   ) -> tf.Tensor:
     """Computes relative self-attention position biases for absolute positions.
 
@@ -1056,9 +1057,9 @@ class T5RelativePositionEmbedding(RelativePositionEmbedding):
   def get_position_bias_raw(
       self,
       queries_position: tf.Tensor,
-      queries_length: tf.Tensor | int,
+      queries_length: Union[tf.Tensor, int],
       keys_position: tf.Tensor,
-      keys_length: tf.Tensor | int,
+      keys_length: Union[tf.Tensor, int],
   ) -> tf.Tensor:
     """Computes relative self-attention position biases for absolute positions.
 
@@ -1191,7 +1192,7 @@ def _dot_product_attention(
     training: bool,
     num_heads: int,
     units_per_head: int,
-    attention_logits_soft_cap: float | None,
+    attention_logits_soft_cap: Optional[float],
     attention_probabilities_dropout: tf.keras.layers.Dropout,
 ) -> tuple[tf.Tensor, tf.Tensor, tf.Tensor]:
   """Computes standard dot product attention with queries, keys and values.
@@ -1288,10 +1289,10 @@ def _streaming_logits_and_softmax_step(
     keys: tf.Tensor,
     values: tf.Tensor,
     invalid_mask: tf.Tensor,
-    logit_bias: tf.Tensor | None,
+    logit_bias: Optional[tf.Tensor],
     num_heads: int,
     query_chunk_size: int,
-    attention_logits_soft_cap: float | None,
+    attention_logits_soft_cap: Optional[float],
     compute_dtype: tf.DType,
 ) -> _StreamingSoftmaxState:
   """Computes an update to the state given queries/keys/values."""
@@ -1362,16 +1363,17 @@ def _chunked_dot_product_attention(
     invalid_mask_fn: Callable[
         [tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor], tf.Tensor
     ],
-    logit_bias_fn: Callable[
-        [tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor],
-        tf.Tensor,
-    ]
-    | None,
+    logit_bias_fn: Optional[
+        Callable[
+            [tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor],
+            tf.Tensor,
+        ]
+    ],
     num_heads: int,
     units_per_head: int,
-    attention_logits_soft_cap: float | None,
+    attention_logits_soft_cap: Optional[float],
     query_chunk_size: int,
-    key_chunk_size: int | None,
+    key_chunk_size: Optional[int],
 ) -> tf.Tensor:
   """Computes chunked dot product attention with queries, keys and values.
 
@@ -1726,9 +1728,9 @@ def _chunked_dot_product_attention(
 
 def _dot_product_attention_logit_bias_fn(
     query_time: tf.Tensor,
-    query_length: tf.Tensor | int,
+    query_length: Union[tf.Tensor, int],
     key_time: tf.Tensor,
-    key_length: tf.Tensor | int,
+    key_length: Union[tf.Tensor, int],
     *,
     relative_position_embedding: RelativePositionEmbedding,
 ) -> tf.Tensor:
@@ -1816,12 +1818,12 @@ class DotProductSelfAttention(types.Emitting):
       use_bias: bool = False,
       kernel_initializer: tf.keras.initializers.Initializer = 'glorot_uniform',
       bias_initializer: tf.keras.initializers.Initializer = 'zeros',
-      attention_logits_soft_cap: float | None = None,
-      query_chunk_size: int | None = None,
-      key_chunk_size: int | None = None,
-      query_network: types.SequenceLayer | None = None,
-      key_network: types.SequenceLayer | None = None,
-      value_network: types.SequenceLayer | None = None,
+      attention_logits_soft_cap: Optional[float] = None,
+      query_chunk_size: Optional[int] = None,
+      key_chunk_size: Optional[int] = None,
+      query_network: Optional[types.SequenceLayer] = None,
+      key_network: Optional[types.SequenceLayer] = None,
+      value_network: Optional[types.SequenceLayer] = None,
       name: Optional[str] = None,
   ):
     """A dot-product self attention layer as in Transformers.
@@ -2459,12 +2461,12 @@ class DotProductAttention(types.Emitting):
       use_bias: bool = False,
       kernel_initializer='glorot_uniform',
       bias_initializer='zeros',
-      attention_logits_soft_cap: float | None = None,
-      query_chunk_size: int | None = None,
-      key_chunk_size: int | None = None,
-      query_network: types.SequenceLayer | None = None,
-      key_network: types.SequenceLayer | None = None,
-      value_network: types.SequenceLayer | None = None,
+      attention_logits_soft_cap: Optional[float] = None,
+      query_chunk_size: Optional[int] = None,
+      key_chunk_size: Optional[int] = None,
+      query_network: Optional[types.SequenceLayer] = None,
+      key_network: Optional[types.SequenceLayer] = None,
+      value_network: Optional[types.SequenceLayer] = None,
       name: Optional[str] = None,
   ):
     """A dot-product attention layer as in Transformers.
@@ -2591,7 +2593,7 @@ class DotProductAttention(types.Emitting):
     )
 
   def get_initial_state(
-      self, x: types.Sequence, constants: types.Constants | None = None
+      self, x: types.Sequence, constants: Optional[types.Constants] = None
   ) -> types.State:
     if self._query_network:
       batch_size = utils.smart_dimension_size(x.values, 0)
@@ -2751,13 +2753,12 @@ class DotProductAttention(types.Emitting):
       queries: types.Sequence,
       keys: types.Sequence,
       values: types.Sequence,
-      logit_bias_fn: (
+      logit_bias_fn: Optional[
           Callable[
-              [tf.Tensor, tf.Tensor | int, tf.Tensor, tf.Tensor | int],
+              [tf.Tensor, tf.Tensor, int, tf.Tensor, tf.Tensor, int],
               tf.Tensor,
           ]
-          | None
-      ),
+      ],
       is_step: bool,
       training: bool,
   ) -> tuple[types.Sequence, types.Emits]:

@@ -18,11 +18,12 @@ import copy
 import fractions
 from typing import Any, Generator, Optional, Tuple
 
+import tensorflow.compat.v1 as tf1
+import tensorflow.compat.v2 as tf
+
 from . import combinators
 from . import types
 from . import utils
-import tensorflow.compat.v1 as tf1
-import tensorflow.compat.v2 as tf
 
 
 class RNN(types.SequenceLayer):

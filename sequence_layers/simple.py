@@ -19,11 +19,12 @@ import fractions
 import math
 from typing import Any, Callable, List, Optional, Sequence, Tuple, Union
 
+import tensorflow.compat.v2 as tf
+
 import numpy as np
 from . import dense
 from . import types
 from . import utils
-import tensorflow.compat.v2 as tf
 
 
 class Scale(types.StatelessPointwise):
@@ -186,7 +187,7 @@ class Swish(types.StatelessPointwiseFunctor):
 class Gelu(types.StatelessPointwiseFunctor):
   """Gaussian Error Linear Unit (GELU)."""
 
-  def __init__(self, approximate: bool = False, name: str | None = None):
+  def __init__(self, approximate: bool = False, name: Optional[str] = None):
     super().__init__(name=name)
     self._approximate = approximate
 
@@ -217,9 +218,9 @@ class GatedUnit(types.Stateless):
 
   def __init__(
       self,
-      feature_activation: Callable[[tf.Tensor], tf.Tensor] | None,
-      gate_activation: Callable[[tf.Tensor], tf.Tensor] | None,
-      name: str | None = None,
+      feature_activation: Optional[Callable[[tf.Tensor], tf.Tensor]],
+      gate_activation: Optional[Callable[[tf.Tensor], tf.Tensor]],
+      name: Optional[str] = None,
   ):
     super().__init__(name=name)
     self._feature_activation = feature_activation
@@ -1176,9 +1177,9 @@ class AssertChannelSpec(types.StatelessPointwise):
 
   def __init__(
       self,
-      expected_channel_shape: tf.TensorShape | None = None,
-      expected_dtype: tf.DType | None = None,
-      name: str | None = None,
+      expected_channel_shape: Optional[tf.TensorShape] = None,
+      expected_dtype: Optional[tf.DType] = None,
+      name: Optional[str] = None,
   ):
     super().__init__(name=name)
     self._expected_channel_shape = expected_channel_shape

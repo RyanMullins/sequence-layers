@@ -18,11 +18,12 @@ import functools
 from typing import Callable, Optional, Tuple
 
 import numpy as np
+import tensorflow.compat.v1 as tf1
+import tensorflow.compat.v2 as tf
+
 from . import convolution
 from . import types
 from . import utils
-import tensorflow.compat.v1 as tf1
-import tensorflow.compat.v2 as tf
 
 
 class Delay(types.SequenceLayer):

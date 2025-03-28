@@ -18,8 +18,9 @@ import math
 
 from absl.testing import parameterized
 import sequence_layers as sl
-from . import test_util
 import tensorflow.compat.v2 as tf
+
+from . import test_util
 
 
 class DspTest(test_util.SequenceLayerTest, parameterized.TestCase):

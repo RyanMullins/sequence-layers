@@ -18,8 +18,9 @@ import fractions
 from absl.testing import parameterized
 import numpy as np
 import sequence_layers as sl
-from . import test_util
 import tensorflow.compat.v2 as tf
+
+from . import test_util
 
 
 class SerialTest(test_util.SequenceLayerTest, parameterized.TestCase):

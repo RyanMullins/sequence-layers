@@ -16,9 +16,10 @@
 import fractions
 from typing import Optional, Tuple
 
+import tensorflow.compat.v2 as tf
+
 from . import types
 from . import utils
-import tensorflow.compat.v2 as tf
 
 
 class Squeeze(types.SequenceLayer):

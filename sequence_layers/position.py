@@ -16,9 +16,10 @@
 import math
 from typing import Optional, Tuple
 
+import tensorflow.compat.v2 as tf
+
 from . import types
 from . import utils
-import tensorflow.compat.v2 as tf
 
 
 # A negative enough value such that it underflows to a hard zero in softmax.
@@ -288,8 +289,8 @@ class ConcatPositionEmbedding(types.SequenceLayer):
       self,
       timesteps: int,
       channels: int,
-      embeddings_initializer: tf.keras.initializers.Initializer | None = None,
-      name: str | None = None,
+      embeddings_initializer: Optional[tf.keras.initializers.Initializer] = None,
+      name: Optional[str] = None,
   ):
     super().__init__(name=name)
     self._timesteps = timesteps
@@ -396,7 +397,7 @@ class ApplyRotaryPositionalEncoding(types.PreservesShape, types.SequenceLayer):
       min_timescale: float = 1.0,
       max_timescale: float = 1.0e4,
       axis: int = -1,
-      name: str | None = None,
+      name: Optional[str] = None,
   ):
     """Initializes the ApplyRotaryPositionalEncoding layer.
 
@@ -480,7 +481,7 @@ class ApplyRotaryPositionalEncoding(types.PreservesShape, types.SequenceLayer):
       x: types.Sequence,
       state: types.State,
       training: bool,
-      constants: types.Constants | None = None,
+      constants: Optional[types.Constants] = None,
   ) -> tuple[types.Sequence, types.State]:
     del constants
     self._check_inputs(x.channel_spec)
@@ -498,8 +499,8 @@ class ApplyRotaryPositionalEncoding(types.PreservesShape, types.SequenceLayer):
       self,
       x: types.Sequence,
       training: bool,
-      initial_state: types.State | None = None,
-      constants: types.Constants | None = None,
+      initial_state: Optional[types.State] = None,
+      constants: Optional[types.Constants] = None,
   ) -> types.Sequence:
     del constants
     self._check_inputs(x.channel_spec)

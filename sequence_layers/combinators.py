@@ -16,22 +16,23 @@
 import collections
 import enum
 import fractions
-from typing import Callable, Generator, List, Optional, Sequence, Tuple
+from typing import Callable, Generator, List, Optional, Sequence, Tuple, Union
 
 from absl import logging
 import numpy as np
+import tensorflow.compat.v2 as tf
+
 from . import dense
 from . import simple
 from . import types
 from . import utils
-import tensorflow.compat.v2 as tf
 
 # Either a SequenceLayer, a list of SequenceLayers, or a callable that returns
 # a SequenceLayer or a list of SequenceLayers.
-SequenceLayerOrList = types.SequenceLayer | Sequence[types.SequenceLayer]
-SequenceLayerListOrCallable = (
-    SequenceLayerOrList | Callable[[], SequenceLayerOrList]
-)
+SequenceLayerOrList = Union[types.SequenceLayer, Sequence[types.SequenceLayer]]
+SequenceLayerListOrCallable = Union[
+    SequenceLayerOrList, Callable[[], SequenceLayerOrList]
+]
 
 
 def _maybe_wrap_layers(
@@ -78,8 +79,10 @@ class _SerialWithoutNameScopes(types.Emitting):
 
   def __init__(
       self,
-      layers: Sequence[types.SequenceLayer]
-      | Callable[[], Sequence[types.SequenceLayer]],
+      layers: Union[
+          Sequence[types.SequenceLayer],
+          Callable[[], Sequence[types.SequenceLayer]],
+      ],
       debug=False,
       name: Optional[str] = None,
   ):

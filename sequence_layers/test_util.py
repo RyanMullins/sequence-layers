@@ -14,13 +14,14 @@
 """Test utilities for SequenceLayers."""
 
 import contextlib
-from typing import Any, Callable, List, Optional, Tuple
+from typing import Any, Callable, List, Optional, Tuple, Union
 
 import numpy as np
 import sequence_layers as sl
-from . import utils
 import tensorflow.compat.v1 as tf1
 import tensorflow.compat.v2 as tf
+
+from . import utils
 
 
 # List of Keras mixed precision policies SequenceLayers supports.
@@ -696,7 +697,7 @@ def rtol_atol_for_dtype(dtype: tf.DType) -> tuple[float, float]:
 
 @contextlib.contextmanager
 def keras_precision_policy_scope(
-    policy: str | tf.keras.mixed_precision.Policy,
+    policy: Union[str, tf.keras.mixed_precision.Policy],
 ):
   old_policy = tf.keras.mixed_precision.global_policy()
   try:
@@ -818,17 +819,17 @@ def convolution_explicit_padding(
 ) -> tuple[int, int]:
   """Returns the amount of padding to add for the desired padding mode."""
   effective_kernel_size = (kernel_size - 1) * dilation_rate + 1
-  match padding:
-    case sl.PaddingMode.CAUSAL.value:
-      return (effective_kernel_size - 1, 0)
-    case sl.PaddingMode.REVERSE_CAUSAL.value:
-      return (0, effective_kernel_size - 1)
-    case sl.PaddingMode.SAME.value:
-      pad_amount = effective_kernel_size - 1
-      pad_left = pad_amount // 2
-      pad_right = pad_amount - pad_left
-      return pad_left, pad_right
-    case sl.PaddingMode.VALID.value:
-      return 0, 0
-    case _:
-      raise ValueError(f'Unsupported padding: {padding}')
+
+  if padding == sl.PaddingMode.CAUSAL.value:
+    return (effective_kernel_size - 1, 0)
+  elif padding == sl.PaddingMode.REVERSE_CAUSAL.value:
+    return (0, effective_kernel_size - 1)
+  elif padding == sl.PaddingMode.SAME.value:
+    pad_amount = effective_kernel_size - 1
+    pad_left = pad_amount // 2
+    pad_right = pad_amount - pad_left
+    return pad_left, pad_right
+  elif padding == sl.PaddingMode.VALID.value:
+    return 0, 0
+  else:
+    raise ValueError(f'Unsupported padding: {padding}')

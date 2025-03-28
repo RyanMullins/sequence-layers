@@ -161,7 +161,7 @@ class SequenceArray(metaclass=abc.ABCMeta):
   @classmethod
   @abc.abstractmethod
   def new(
-      cls, dtype: DType, size: TensorLike | None, dynamic_size: bool | None
+      cls, dtype: DType, size: Optional[TensorLike], dynamic_size: Optional[bool]
   ) -> 'SequenceArray':
     """Constructs a new SequenceArray.
 
@@ -270,7 +270,7 @@ class SequenceLayer(metaclass=abc.ABCMeta):
       x: SequenceLike,
       state: State,
       training: bool,
-      constants: Constants | None,
+      constants: Optional[Constants],
   ) -> tuple[SequenceLike, State]:
     """Process this layer step-wise.
 
@@ -302,7 +302,7 @@ class SequenceLayer(metaclass=abc.ABCMeta):
       x: SequenceLike,
       state: State,
       training: bool,
-      constants: Constants | None,
+      constants: Optional[Constants],
   ) -> tuple[SequenceLike, State, Emits]:
     """Process this layer step-wise, producing emitted tensors.
 
@@ -338,8 +338,8 @@ class SequenceLayer(metaclass=abc.ABCMeta):
       self,
       x: SequenceLike,
       training: bool,
-      initial_state: State | None,
-      constants: Constants | None,
+      initial_state: Optional[State],
+      constants: Optional[Constants],
   ) -> SequenceLike:
     """Process this layer layer-wise.
 
@@ -365,8 +365,8 @@ class SequenceLayer(metaclass=abc.ABCMeta):
       self,
       x: SequenceLike,
       training: bool,
-      initial_state: State | None,
-      constants: Constants | None,
+      initial_state: Optional[State],
+      constants: Optional[Constants],
   ) -> tuple[Sequence, Emits]:
     """Process this layer layer-wise, producing emitted tensors.
 
@@ -397,7 +397,7 @@ class SequenceLayer(metaclass=abc.ABCMeta):
 
   @abc.abstractmethod
   def get_initial_state(
-      self, x: SequenceLike, constants: Constants | None
+      self, x: SequenceLike, constants: Optional[Constants]
   ) -> State:
     """Returns the initial state for this SequenceLayer.
 
@@ -416,7 +416,7 @@ class SequenceLayer(metaclass=abc.ABCMeta):
 
   @abc.abstractmethod
   def get_output_shape_for_sequence(
-      self, x: SequenceLike, constants: Constants | None
+      self, x: SequenceLike, constants: Optional[Constants]
   ) -> Shape:
     """Returns the output shape this layer produces for the provided Sequence.
 
@@ -437,7 +437,7 @@ class SequenceLayer(metaclass=abc.ABCMeta):
 
   @abc.abstractmethod
   def get_output_shape(
-      self, input_shape: Shape, constants: Constants | None
+      self, input_shape: Shape, constants: Optional[Constants]
   ) -> Shape:
     """Returns the output shape this layer produces for an input shape.
 
@@ -486,7 +486,7 @@ class Emitting(SequenceLayer, metaclass=abc.ABCMeta):
       x: SequenceLike,
       state: State,
       training: bool,
-      constants: Constants | None,
+      constants: Optional[Constants],
   ) -> tuple[SequenceLike, State]:
     raise NotImplementedError()
 
@@ -496,7 +496,7 @@ class Emitting(SequenceLayer, metaclass=abc.ABCMeta):
       x: SequenceLike,
       state: State,
       training: bool,
-      constants: Constants | None,
+      constants: Optional[Constants],
   ) -> tuple[SequenceLike, State, Emits]:
     raise NotImplementedError()
 
@@ -505,8 +505,8 @@ class Emitting(SequenceLayer, metaclass=abc.ABCMeta):
       self,
       x: SequenceLike,
       training: bool,
-      initial_state: State | None,
-      constants: Constants | None,
+      initial_state: Optional[State],
+      constants: Optional[Constants],
   ) -> SequenceLike:
     raise NotImplementedError()
 
@@ -515,7 +515,7 @@ class Emitting(SequenceLayer, metaclass=abc.ABCMeta):
       self,
       x: SequenceLike,
       training: bool,
-      initial_state: State | None,
-      constants: Constants | None,
+      initial_state: Optional[State],
+      constants: Optional[Constants],
   ) -> tuple[SequenceLike, Emits]:
     raise NotImplementedError()

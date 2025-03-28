@@ -18,13 +18,13 @@ import sys
 from typing import Any, Callable, Generator, Iterable, NamedTuple, Optional, Type, Union
 
 import attr
+from keras import backend as keras_backend
 import numpy as np
-from . import types_internal as internal
 import tensorflow.compat.v1 as tf1
 import tensorflow.compat.v2 as tf
-
 from tensorflow.python.framework import type_spec  # pylint: disable=g-direct-tensorflow-import
 
+from . import types_internal as internal
 
 TensorLike = Union[tf.Tensor, np.ndarray]
 # Type hint that is basically Any but represents the semantic meaning.
@@ -371,8 +371,8 @@ class SequenceArray(NamedTuple):
   def new(
       cls,
       dtype: tf.DType,
-      size: tf.Tensor | None = None,
-      dynamic_size: bool | None = None,
+      size: Optional[tf.Tensor] = None,
+      dynamic_size: Optional[bool] = None,
   ) -> 'SequenceArray':
     """Constructs a new SequenceArray.
 
@@ -472,7 +472,7 @@ class SequenceLayer(tf.Module, internal.SequenceLayer, metaclass=abc.ABCMeta):
     # Imitate how Keras layers work by creating a unique name from the class
     # name when no layer name is provided.
     if not name:
-      name = tf.keras.backend.unique_object_name(
+      name = keras_backend.unique_object_name(
           self._default_name(),
           zero_based=True,
           namespace='audio_hearing_tensorflow_python_.',
@@ -489,7 +489,7 @@ class SequenceLayer(tf.Module, internal.SequenceLayer, metaclass=abc.ABCMeta):
       x: Sequence,
       state: State,
       training: bool,
-      constants: Constants | None = None,
+      constants: Optional[Constants] = None,
   ) -> tuple[Sequence, State]:
     """Process this layer step-wise.
 
@@ -522,7 +522,7 @@ class SequenceLayer(tf.Module, internal.SequenceLayer, metaclass=abc.ABCMeta):
       x: Sequence,
       state: State,
       training: bool,
-      constants: Constants | None = None,
+      constants: Optional[Constants] = None,
   ) -> tuple[Sequence, State, Emits]:
     """Process this layer step-wise, producing emitted tensors.
 
@@ -557,8 +557,8 @@ class SequenceLayer(tf.Module, internal.SequenceLayer, metaclass=abc.ABCMeta):
       self,
       x: Sequence,
       training: bool,
-      initial_state: State | None = None,
-      constants: Constants | None = None,
+      initial_state: Optional[State] = None,
+      constants: Optional[Constants] = None,
   ) -> Sequence:
     """Process this layer layer-wise.
 
@@ -585,8 +585,8 @@ class SequenceLayer(tf.Module, internal.SequenceLayer, metaclass=abc.ABCMeta):
       self,
       x: Sequence,
       training: bool,
-      initial_state: State | None = None,
-      constants: Constants | None = None,
+      initial_state: Optional[State] = None,
+      constants: Optional[Constants] = None,
   ) -> tuple[Sequence, Emits]:
     """Process this layer layer-wise, producing emitted tensors.
 
@@ -616,7 +616,7 @@ class SequenceLayer(tf.Module, internal.SequenceLayer, metaclass=abc.ABCMeta):
 
   @abc.abstractmethod
   def get_initial_state(
-      self, x: Sequence, constants: Constants | None = None
+      self, x: Sequence, constants: Optional[Constants] = None
   ) -> State:
     """Returns the initial state for this SequenceLayer.
 
@@ -636,7 +636,7 @@ class SequenceLayer(tf.Module, internal.SequenceLayer, metaclass=abc.ABCMeta):
   # Despite calling the parent directly, the type annotations in this method
   # definition are more specific
   def get_output_shape_for_sequence(  # pylint: disable=useless-parent-delegation
-      self, x: Sequence, constants: Constants | None = None
+      self, x: Sequence, constants: Optional[Constants] = None
   ) -> tf.TensorShape:
     """Returns the output shape this layer produces for the provided Sequence.
 
@@ -656,7 +656,7 @@ class SequenceLayer(tf.Module, internal.SequenceLayer, metaclass=abc.ABCMeta):
     return super().get_output_shape_for_sequence(x, constants)
 
   def get_output_spec_for_sequence(
-      self, x: Sequence, constants: Constants | None = None
+      self, x: Sequence, constants: Optional[Constants] = None
   ) -> tf.TensorSpec:
     """Returns the output spec this layer produces for the provided Sequence.
 
@@ -679,7 +679,7 @@ class SequenceLayer(tf.Module, internal.SequenceLayer, metaclass=abc.ABCMeta):
 
   @abc.abstractmethod
   def get_output_shape(
-      self, input_shape: tf.TensorShape, constants: Constants | None = None
+      self, input_shape: tf.TensorShape, constants: Optional[Constants] = None
   ) -> tf.TensorShape:
     """Returns the output shape this layer produces for an input shape.
 
@@ -698,7 +698,7 @@ class SequenceLayer(tf.Module, internal.SequenceLayer, metaclass=abc.ABCMeta):
     pass
 
   def get_output_spec(
-      self, input_spec: tf.TensorSpec, constants: Constants | None = None
+      self, input_spec: tf.TensorSpec, constants: Optional[Constants] = None
   ) -> tf.TensorSpec:
     """Returns the output spec this layer produces for an input spec.
 
@@ -720,7 +720,7 @@ class SequenceLayer(tf.Module, internal.SequenceLayer, metaclass=abc.ABCMeta):
     )
 
   def get_emit_specs(
-      self, input_spec: tf.TensorSpec, constants: Constants | None = None
+      self, input_spec: tf.TensorSpec, constants: Optional[Constants] = None
   ) -> EmitSpecs:
     """Returns the emit specs this layer produces for an input spec.
 
@@ -742,7 +742,7 @@ class SequenceLayer(tf.Module, internal.SequenceLayer, metaclass=abc.ABCMeta):
     return ()
 
   def get_emit_specs_for_sequence(
-      self, x: Sequence, constants: Constants | None = None
+      self, x: Sequence, constants: Optional[Constants] = None
   ) -> EmitSpecs:
     """Returns the emit specs this layer produces for the provided Sequence.
 
@@ -783,7 +783,7 @@ class PreservesShape:
   """A mix-in for layers that do not change the input shape."""
 
   def get_output_shape(
-      self, input_shape: tf.TensorShape, constants: Constants | None = None
+      self, input_shape: tf.TensorShape, constants: Optional[Constants] = None
   ) -> tf.TensorShape:
     del constants
     if not input_shape.is_fully_defined():
@@ -806,7 +806,7 @@ class Emitting(SequenceLayer, internal.Emitting, metaclass=abc.ABCMeta):
 
   @tf.Module.with_name_scope
   def step(
-      self, x, state, training, constants: Constants | None = None
+      self, x, state, training, constants: Optional[Constants] = None
   ) -> tuple[Sequence, State]:
     output, state, _ = self.step_with_emits(x, state, training, constants)
     return output, state
@@ -817,7 +817,7 @@ class Emitting(SequenceLayer, internal.Emitting, metaclass=abc.ABCMeta):
       x: Sequence,
       state: State,
       training: bool,
-      constants: Constants | None = None,
+      constants: Optional[Constants] = None,
   ) -> tuple[Sequence, State, Emits]:
     pass
 
@@ -826,8 +826,8 @@ class Emitting(SequenceLayer, internal.Emitting, metaclass=abc.ABCMeta):
       self,
       x: Sequence,
       training: bool,
-      initial_state: State | None = None,
-      constants: Constants | None = None,
+      initial_state: Optional[State] = None,
+      constants: Optional[Constants] = None,
   ) -> Sequence:
     outputs, _ = self.layer_with_emits(x, training, initial_state, constants)
     return outputs
@@ -837,14 +837,14 @@ class Emitting(SequenceLayer, internal.Emitting, metaclass=abc.ABCMeta):
       self,
       x: Sequence,
       training: bool,
-      initial_state: State | None = None,
-      constants: Constants | None = None,
+      initial_state: Optional[State] = None,
+      constants: Optional[Constants] = None,
   ) -> tuple[Sequence, Emits]:
     pass
 
   @abc.abstractmethod
   def get_emit_specs(
-      self, input_spec: tf.TensorShape, constants: Constants | None = None
+      self, input_spec: tf.TensorShape, constants: Optional[Constants] = None
   ) -> EmitSpecs:
     pass
 
@@ -863,7 +863,7 @@ class Stateless(SequenceLayer):
       x: Sequence,
       state: State,
       training: bool,
-      constants: Constants | None = None,
+      constants: Optional[Constants] = None,
   ) -> tuple[Sequence, State]:
     return (
         self.layer(x, training, initial_state=state, constants=constants),
@@ -871,7 +871,7 @@ class Stateless(SequenceLayer):
     )
 
   def get_initial_state(
-      self, x: Sequence, constants: Constants | None = None
+      self, x: Sequence, constants: Optional[Constants] = None
   ) -> State:
     return ()
 
@@ -891,7 +891,7 @@ class StatelessEmitting(Emitting):
       x: Sequence,
       state: State,
       training: bool,
-      constants: Constants | None = None,
+      constants: Optional[Constants] = None,
   ) -> tuple[Sequence, State, Emits]:
     outputs, emits = self.layer_with_emits(
         x, training, initial_state=state, constants=constants
@@ -899,7 +899,7 @@ class StatelessEmitting(Emitting):
     return outputs, state, emits
 
   def get_initial_state(
-      self, x: Sequence, constants: Constants | None = None
+      self, x: Sequence, constants: Optional[Constants] = None
   ) -> State:
     return ()
 
@@ -925,8 +925,8 @@ class StatelessPointwiseFunctor(StatelessPointwise, metaclass=abc.ABCMeta):
       self,
       x: Sequence,
       training: bool,
-      initial_state: State | None = None,
-      constants: Constants | None = None,
+      initial_state: Optional[State] = None,
+      constants: Optional[Constants] = None,
   ) -> Sequence:
     del training
     del initial_state

@@ -13,9 +13,10 @@
 # limitations under the License.
 from absl.testing import parameterized
 import sequence_layers as sl
+import tensorflow.compat.v2 as tf
+
 from . import test_util
 from . import utils
-import tensorflow.compat.v2 as tf
 
 
 class SequenceEmbeddingTest(
