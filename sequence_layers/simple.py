@@ -1037,22 +1037,27 @@ class Lambda(types.Stateless):
 
   def __init__(
       self, 
-      
-      # If sequence_input is True, a callable that takes an sl.Sequence and returns an sl.Sequence. If sequence_input is False, a callable that takes 
-      # a Tensor and returns a Tensor. The function should be a pure, stateless function of the inputs and its receptive field should be 1.
-      fn: Union[Callable[[tf.Tensor], tf.Tensor], Callable[[types.Sequence], types.Sequence]] = lambda x: x,
-      
-      # If true, the callable accepts and returns sequences.
+      fn: Union[Callable[[tf.Tensor], tf.Tensor], Callable[[types.Sequence], types.Sequence]],
       sequence_input: bool = False,
-
-      # If true, the output of fn is assumed to have potentially changed the masked status of its inputs.
       mask_required: bool = True,
-
-      # If get_output_shape or get_output_dtype are called, the input_spec to use for type or shape information (respectively). 
-      # Prefer to use get_output_spec to avoid having to specify this.
       expected_input_spec: Union[tf.TensorSpec, None] = None,
     
   ):
+  """A SequenceLayer that wraps a Python lambda function.
+  
+  Args:
+      fn: The lambda function being wrapped. This function should be pure and stateless, and
+          its receptive field should be 1. If sequence_input is True, this function takes a 
+          `sl.Sequence` and returns `a sl.Sequence`. If sequence_input is False, a callable that
+           takes a `tf.Tensor` and returns a `tf.Tensor`. The function may change the shape and 
+           dtype of the input.
+      sequence_input: If true, the callable accepts and returns Sequences. Defaults to False.
+      mask_required: If true, the output of fn is assumed to have potentially changed the 
+          masked status of its inputs. Defaults to True.
+      expected_input_spec: Optional tf.TensorSpec continaing the type and shape information
+          that will be returned by `get_output_dtype()` and `get_output_shape()`, respectively. 
+          Prefer `get_output_spec()` over specifying this parameter. Defaults to `None`.
+  """
     self.fn = fn
     self.sequence_input = sequence_input
     self.mask_required = mask_required
