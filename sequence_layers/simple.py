@@ -1026,6 +1026,123 @@ class Identity(types.StatelessPointwise):
     del training
     del initial_state
     return x
+  
+class Lambda(types.Stateless):
+  """A SequenceLayer that wraps a Python lambda function.
+
+  The wrapped lambda is assumed to be stateless. The receptive field of the
+  function in the time dimension should be 1 (i.e. no information crosses
+  timesteps). The function may change the shape and dtype of the input.
+  """
+
+  def __init__(self, config: DolphinGemmaLambdaConfig):
+    self.config = config
+
+  @property
+  def supports_step(self) -> bool:
+    return True
+
+  def _validate_input_spec(self, input_spec: tf.TensorSpec) -> None:
+    del input_spec
+
+  def get_output_spec(
+      self,
+      input_spec: tf.TensorSpec,
+      *,
+      constants: Union[types.Constants, None] = None,
+  ) -> tf.TensorSpec:
+    self._validate_input_spec(input_spec)
+    if self.config.sequence_input:
+      input_spec = types.Sequence(
+          tf.TensorSpec(
+              (1, 1) + tuple(input_spec.shape),
+              input_spec.dtype,
+          ),
+          tf.TensorSpec((1, 1), tf.bool),
+      )
+    else:
+      input_spec = tf.TensorSpec(
+          (1, 1) + tuple(input_spec.shape),
+          input_spec.dtype,
+      )
+    
+    @tf.function
+    def forward(*args):
+      return self.config.fn(*args)
+
+    concrete_fn = forward.get_concrete_function(*input_spec if isinstance(input_spec, (tuple, list)) else input_spec)
+    outputs = concrete_fn.outputs
+    if isinstance(outputs, (list, tuple)):
+      out_shape = outputs[0].shape
+      out_dtype = outputs[0].dtype
+    else:
+      out_shape = outputs.shape
+      out_dtype = outputs.dtype
+    final_shape = out_shape[2:]
+    output_spec = concrete_fn.output_shapes
+    return tf.TensorSpec(final_shape, out_dtype)
+
+  def get_output_dtype(self, input_dtype: tf.DType) -> tf.DType:
+  
+    if config.expected_input_spec is None:
+      raise ValueError(
+          f'get_output_dtype requires expected_input_spec. {config=}'
+      )
+    return self.get_output_spec(
+        tf.TensorSpec(
+            tuple(config.expected_input_spec.shape), input_dtype
+        )
+    ).dtype
+
+  def get_output_shape(
+      self,
+      input_shape: Union[List[int], Tuple[int, ...]],
+      *,
+      constants: Union[types.Constants, None] = None,
+  ) -> tf.TensorShape:
+  
+    if self.config.expected_input_spec is None:
+      raise ValueError(
+          f'get_output_shape requires expected_input_spec. {self.config=}'
+      )
+    return self.get_output_spec(
+        tf.TensorSpec(
+            tuple(input_shape), self.config.expected_input_spec.dtype
+        )
+    ).shape
+
+  def layer(
+      self,
+      x: types.Sequence,
+      *,
+      training: bool,
+      constants: Union[types.Constants, None] = None,
+  ) -> types.Sequence:
+    self._validate_input_spec(x.channel_spec)
+    if self.config.sequence_input:
+      fn = typing.cast(
+          Callable[[types.Sequence], types.Sequence], self.config.fn 
+      )
+      y = fn(x)
+      if y.shape[:2] != x.shape[:2]:
+        raise ValueError(
+            f'sl.Lambda function ({self.config.fn=}) should not change the' 
+            f' batch or time shape of the input. fn({x.shape=}) -> {y.shape}'
+        )
+    else:
+      values = self.config.fn(x.values) 
+      if values.shape[:2] != x.shape[:2]:
+        raise ValueError(
+            f'sl.Lambda function ({self.config.fn=}) should not change the'
+            f' batch or time shape of the input. fn({x.shape=}) ->'
+            f' {values.shape=}'
+        )
+      if self.config.mask_required:
+        y = types.Sequence(values, x.mask)
+      else:
+        y = type(x)(values, x.mask)
+
+    return y
 
 
 class ReverseSequence(types.SequenceLayer):
