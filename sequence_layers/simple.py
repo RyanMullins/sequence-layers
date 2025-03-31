@@ -17,7 +17,7 @@ import abc
 import dataclasses
 import fractions
 import math
-from typing import Any, Callable, List, Optional, Sequence, Tuple, Union
+from typing import cast, Any, Callable, List, Optional, Sequence, Tuple, Union
 
 import tensorflow.compat.v2 as tf
 
@@ -1026,6 +1026,145 @@ class Identity(types.StatelessPointwise):
     del training
     del initial_state
     return x
+
+
+class Lambda(types.Stateless):
+  """A SequenceLayer that wraps a Python lambda function.
+
+  The wrapped lambda is assumed to be stateless. The receptive field of the
+  function in the time dimension should be 1 (i.e. no information crosses
+  timesteps). The function may change the shape and dtype of the input.
+  """
+
+  def __init__(
+      self,
+      fn: Union[
+          Callable[[tf.Tensor], tf.Tensor],
+          Callable[[types.Sequence], types.Sequence],
+      ],
+      sequence_input: bool = False,
+      mask_required: bool = True,
+      expected_input_spec: Optional[tf.TensorSpec] = None,
+  ):
+    """A SequenceLayer that wraps a Python lambda function.
+
+    Args:
+        fn: The lambda function being wrapped. This function should be pure and
+            stateless, and its receptive field should be 1. If sequence_input is
+            True, this function takes a `sl.Sequence` and returns a
+            `sl.Sequence`. If sequence_input is False, a callable that takes a
+            `tf.Tensor` and returns a `tf.Tensor`. The function may change the
+            shape and dtype of the input.
+        sequence_input: If true, the callable accepts and returns Sequences.
+            Defaults to False.
+        mask_required: If true, the output of fn is assumed to have potentially
+            changed the masked status of its inputs. Defaults to True.
+        expected_input_spec: Optional tf.TensorSpec continaing the type and
+            shape information that will be returned by `get_output_dtype()` and
+            `get_output_shape()`, respectively. Prefer `get_output_spec()` over
+            specifying this parameter. Defaults to `None`.
+    """
+    self.fn = fn
+    self.sequence_input = sequence_input
+    self.mask_required = mask_required
+    self.expected_input_spec = expected_input_spec
+
+  @property
+  def supports_step(self) -> bool:
+    return True
+
+  def get_output_spec(
+      self,
+      input_spec: tf.TensorSpec,
+      *,
+      constants: Union[types.Constants, None] = None,
+  ) -> tf.TensorSpec:
+    if self.sequence_input:
+      input_spec = types.Sequence(
+          tf.TensorSpec(
+              (1, 1) + tuple(input_spec.shape),
+              input_spec.dtype,
+          ),
+          tf.TensorSpec((1, 1), tf.bool),
+      )
+    else:
+      input_spec = tf.TensorSpec(
+          (1, 1) + tuple(input_spec.shape),
+          input_spec.dtype,
+      )
+
+    @tf.function
+    def forward(*args):
+      return self.fn(*args)
+
+    concrete_fn = forward.get_concrete_function(*input_spec if isinstance(input_spec, (tuple, list)) else input_spec)
+    outputs = concrete_fn.outputs
+    if isinstance(outputs, (list, tuple)):
+      out_shape = outputs[0].shape
+      out_dtype = outputs[0].dtype
+    else:
+      out_shape = outputs.shape
+      out_dtype = outputs.dtype
+    final_shape = out_shape[2:]
+    return tf.TensorSpec(final_shape, out_dtype)
+
+  def get_output_dtype(self, input_dtype: tf.DType) -> tf.DType:
+
+    if self.expected_input_spec is None:
+      raise ValueError(
+          f'get_output_dtype requires expected_input_spec. {self.expected_input_spec=}'
+      )
+    return self.get_output_spec(
+        tf.TensorSpec(
+            tuple(self.expected_input_spec.shape), input_dtype
+        )
+    ).dtype
+
+  def get_output_shape(
+      self,
+      input_shape: Union[List[int], Tuple[int, ...]],
+      *,
+      constants: Union[types.Constants, None] = None,
+  ) -> tf.TensorShape:
+    if self.expected_input_spec is None:
+      raise ValueError(
+          f'get_output_shape requires expected_input_spec. {self.expected_input_spec=}'
+      )
+    return self.get_output_spec(
+        tf.TensorSpec(
+            tuple(input_shape), self.expected_input_spec.dtype
+        )
+    ).shape
+
+  def layer(
+      self,
+      x: types.Sequence,
+      *,
+      training: bool,
+      constants: Union[types.Constants, None] = None,
+  ) -> types.Sequence:
+    if self.sequence_input:
+      fn = cast(Callable[[types.Sequence], types.Sequence], self.fn)
+      y = fn(x)
+      if y.shape[:2] != x.shape[:2]:
+        raise ValueError(
+            f'sl.Lambda function ({self.fn=}) should not change the'
+            f' batch or time shape of the input. fn({x.shape=}) -> {y.shape}'
+        )
+    else:
+      values = self.fn(x.values)
+      if values.shape[:2] != x.shape[:2]:
+        raise ValueError(
+            f'sl.Lambda function ({self.fn=}) should not change the'
+            f' batch or time shape of the input. fn({x.shape=}) ->'
+            f' {values.shape=}'
+        )
+      if self.mask_required:
+        y = types.Sequence(values, x.mask)
+      else:
+        y = type(x)(values, x.mask)
+
+    return y
 
 
 class ReverseSequence(types.SequenceLayer):
