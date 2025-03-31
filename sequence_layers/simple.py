@@ -1035,8 +1035,28 @@ class Lambda(types.Stateless):
   timesteps). The function may change the shape and dtype of the input.
   """
 
-  def __init__(self, config: DolphinGemmaLambdaConfig):
-    self.config = config
+  def __init__(
+      self, 
+      
+      # If sequence_input is True, a callable that takes an sl.Sequence and returns an sl.Sequence. If sequence_input is False, a callable that takes 
+      # a Tensor and returns a Tensor. The function should be a pure, stateless function of the inputs and its receptive field should be 1.
+      fn: Union[Callable[[tf.Tensor], tf.Tensor], Callable[[types.Sequence], types.Sequence]] = lambda x: x,
+      
+      # If true, the callable accepts and returns sequences.
+      sequence_input: bool = False,
+
+      # If true, the output of fn is assumed to have potentially changed the masked status of its inputs.
+      mask_required: bool = True,
+
+      # If get_output_shape or get_output_dtype are called, the input_spec to use for type or shape information (respectively). 
+      # Prefer to use get_output_spec to avoid having to specify this.
+      expected_input_spec: Union[tf.TensorSpec, None] = None,
+    
+  ):
+    self.fn = fn
+    self.sequence_input = sequence_input
+    self.mask_required = mask_required
+    self.expected_input_spec = expected_input_spec
 
   @property
   def supports_step(self) -> bool:
@@ -1052,7 +1072,7 @@ class Lambda(types.Stateless):
       constants: Union[types.Constants, None] = None,
   ) -> tf.TensorSpec:
     self._validate_input_spec(input_spec)
-    if self.config.sequence_input:
+    if self.sequence_input:
       input_spec = types.Sequence(
           tf.TensorSpec(
               (1, 1) + tuple(input_spec.shape),
@@ -1068,7 +1088,7 @@ class Lambda(types.Stateless):
     
     @tf.function
     def forward(*args):
-      return self.config.fn(*args)
+      return self.fn(*args)
 
     concrete_fn = forward.get_concrete_function(*input_spec if isinstance(input_spec, (tuple, list)) else input_spec)
     outputs = concrete_fn.outputs
@@ -1084,13 +1104,13 @@ class Lambda(types.Stateless):
 
   def get_output_dtype(self, input_dtype: tf.DType) -> tf.DType:
   
-    if config.expected_input_spec is None:
+    if self.expected_input_spec is None:
       raise ValueError(
-          f'get_output_dtype requires expected_input_spec. {config=}'
+          f'get_output_dtype requires expected_input_spec. {self.expected_input_spec=}'
       )
     return self.get_output_spec(
         tf.TensorSpec(
-            tuple(config.expected_input_spec.shape), input_dtype
+            tuple(self.expected_input_spec.shape), input_dtype
         )
     ).dtype
 
@@ -1101,13 +1121,13 @@ class Lambda(types.Stateless):
       constants: Union[types.Constants, None] = None,
   ) -> tf.TensorShape:
   
-    if self.config.expected_input_spec is None:
+    if self.expected_input_spec is None:
       raise ValueError(
-          f'get_output_shape requires expected_input_spec. {self.config=}'
+          f'get_output_shape requires expected_input_spec. {self.expected_input_spec=}'
       )
     return self.get_output_spec(
         tf.TensorSpec(
-            tuple(input_shape), self.config.expected_input_spec.dtype
+            tuple(input_shape), self.expected_input_spec.dtype
         )
     ).shape
 
@@ -1119,25 +1139,25 @@ class Lambda(types.Stateless):
       constants: Union[types.Constants, None] = None,
   ) -> types.Sequence:
     self._validate_input_spec(x.channel_spec)
-    if self.config.sequence_input:
+    if self.sequence_input:
       fn = typing.cast(
-          Callable[[types.Sequence], types.Sequence], self.config.fn 
+          Callable[[types.Sequence], types.Sequence], self.fn 
       )
       y = fn(x)
       if y.shape[:2] != x.shape[:2]:
         raise ValueError(
-            f'sl.Lambda function ({self.config.fn=}) should not change the' 
+            f'sl.Lambda function ({self.fn=}) should not change the' 
             f' batch or time shape of the input. fn({x.shape=}) -> {y.shape}'
         )
     else:
-      values = self.config.fn(x.values) 
+      values = self.fn(x.values) 
       if values.shape[:2] != x.shape[:2]:
         raise ValueError(
-            f'sl.Lambda function ({self.config.fn=}) should not change the'
+            f'sl.Lambda function ({self.fn=}) should not change the'
             f' batch or time shape of the input. fn({x.shape=}) ->'
             f' {values.shape=}'
         )
-      if self.config.mask_required:
+      if self.mask_required:
         y = types.Sequence(values, x.mask)
       else:
         y = type(x)(values, x.mask)
